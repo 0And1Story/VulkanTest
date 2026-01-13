@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "utility.h"
+
 #include "vulkan/vulkan.hpp"
 
 #include <memory>
@@ -25,6 +27,7 @@ public:
     vk::PhysicalDevice phyDevice;
     vk::Device device;
     vk::Queue graphicsQueue;
+    vk::SurfaceKHR surface;
 
     QueueFamilyIndices queueFamilyIndices;
 
@@ -32,10 +35,10 @@ public:
     ~Context();
 
     static Context& GetInstance();
-    static void Init();
+    static void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface);
     static void Quit();
 
-    void createInstance();
+    void createInstance(const std::vector<const char*>& extensions);
     void pickupPhysicalDevice();
     void createDevice();
     void queryQueueFamilyIndices();
@@ -45,7 +48,7 @@ private:
     static std::unique_ptr<Context> _instance;
 
 private:
-    Context();
+    Context(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface);
 };
 
 }

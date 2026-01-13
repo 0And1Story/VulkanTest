@@ -6,12 +6,14 @@
   */
 
 #include "toy2d.h"
+
+#include <utility>
 #include "context.h"
 
 namespace toy2d {
 
-void Init() {
-    Context::Init();
+void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface) {
+    Context::Init(extensions, createSurface);
 }
 
 void Quit() {

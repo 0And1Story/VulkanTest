@@ -10,6 +10,7 @@
 #include "toy2d/toy2d.h"
 
 #include <iostream>
+#include <vector>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
@@ -30,7 +31,8 @@ int main(int argc, char* argv[]) {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Toy2D", nullptr, nullptr);
     if (window == nullptr) {
@@ -40,7 +42,24 @@ int main(int argc, char* argv[]) {
     }
     glfwMakeContextCurrent(window);
 
-    toy2d::Init();
+    uint32_t ext_cnt;
+    auto extensions_c = glfwGetRequiredInstanceExtensions(&ext_cnt);
+    std::vector<const char*> extensions(extensions_c, extensions_c + ext_cnt);
+
+    std::clog << "Required Vulkan instance extensions:";
+    for (const auto& extension : extensions) std::clog << " " << extension;
+    std::clog << std::endl;
+
+    toy2d::Init(
+        extensions,
+        [&](vk::Instance instance) -> vk::SurfaceKHR {
+            VkSurfaceKHR surface;
+            if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create window surface.");
+            }
+            return surface;
+        }
+    );
 
     while (!glfwWindowShouldClose(window)) {
 //        glfwSwapBuffers(window);

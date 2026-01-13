@@ -7,9 +7,16 @@
 
 #pragma once
 
+#include "utility.h"
+
+#include "vulkan/vulkan.hpp"
+
+#include <vector>
+#include <functional>
+
 namespace toy2d {
 
-void Init();
+void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface);
 void Quit();
 
 }

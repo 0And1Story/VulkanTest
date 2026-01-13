@@ -8,6 +8,7 @@
 #include "context.h"
 
 #include <iostream>
+#include <utility>
 #include <vector>
 
 #define ENABLE_VALIDATION_LAYER
@@ -16,8 +17,8 @@ namespace toy2d {
 
 std::unique_ptr<Context> Context::_instance = nullptr;
 
-void Context::Init() {
-    _instance.reset(new Context);
+void Context::Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface) {
+    _instance.reset(new Context(extensions, createSurface));
 }
 
 void Context::Quit() {}
@@ -26,20 +27,22 @@ Context& Context::GetInstance() {
     return *_instance;
 }
 
-Context::Context() {
-    createInstance();
+Context::Context(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface) {
+    createInstance(extensions);
     pickupPhysicalDevice();
     queryQueueFamilyIndices();
+    surface = createSurface(instance);
     createDevice();
     getQueues();
 }
 
 Context::~Context() noexcept {
+    instance.destroySurfaceKHR(surface);
     device.destroy();
     instance.destroy();
 }
 
-void Context::createInstance() {
+void Context::createInstance(const std::vector<const char*>& extensions) {
     vk::InstanceCreateInfo createInfo;
     std::vector<const char*> layers;
 
@@ -60,7 +63,8 @@ void Context::createInstance() {
     appInfo.setApiVersion(VK_API_VERSION_1_4);
     createInfo
     .setPApplicationInfo(&appInfo)
-    .setPEnabledLayerNames(layers);
+    .setPEnabledLayerNames(layers)
+    .setPEnabledExtensionNames(extensions);
 
     instance = vk::createInstance(createInfo);
 }
