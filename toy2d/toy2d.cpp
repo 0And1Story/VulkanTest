@@ -12,11 +12,13 @@
 
 namespace toy2d {
 
-void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface) {
+void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface, int w, int h) {
     Context::Init(extensions, createSurface);
+    Context::GetInstance().InitSwapchain(w, h);
 }
 
 void Quit() {
+    Context::GetInstance().DestroySwapchain();
     Context::Quit();
 }
 

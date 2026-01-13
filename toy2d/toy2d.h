@@ -16,7 +16,7 @@
 
 namespace toy2d {
 
-void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface);
+void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface, int w, int h);
 void Quit();
 
 }

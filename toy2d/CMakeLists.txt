@@ -5,8 +5,10 @@ target_sources(toy2d
         toy2d.h
         context.h
         utility.h
+        swapchain.h
     PRIVATE
         toy2d.cpp
         context.cpp
         utility.cpp
+        swapchain.cpp
 )

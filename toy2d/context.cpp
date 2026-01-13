@@ -30,8 +30,8 @@ Context& Context::GetInstance() {
 Context::Context(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface) {
     createInstance(extensions);
     pickupPhysicalDevice();
-    queryQueueFamilyIndices();
     surface = createSurface(instance);
+    queryQueueFamilyIndices();
     createDevice();
     getQueues();
 }
@@ -40,6 +40,14 @@ Context::~Context() noexcept {
     instance.destroySurfaceKHR(surface);
     device.destroy();
     instance.destroy();
+}
+
+void Context::InitSwapchain(int w, int h) {
+    swapchain.reset(new Swapchain(w, h));
+}
+
+void Context::DestroySwapchain() {
+    swapchain.reset();
 }
 
 void Context::createInstance(const std::vector<const char*>& extensions) {
@@ -54,13 +62,28 @@ void Context::createInstance(const std::vector<const char*>& extensions) {
     }
     std::clog << std::endl;
 #endif
+#if !defined(NDEBUG) && false
+    std::clog << "Valid Vulkan extensions:" << std::endl;
+    auto valid_extensions = vk::enumerateInstanceExtensionProperties();
+    for (const auto& ext : valid_extensions) {
+        std::clog << ext.extensionName << std::endl;
+    }
+    std::clog << std::endl;
+#endif
 // enable validation layer on debug mode
 #if !defined(NDEBUG) && defined(ENABLE_VALIDATION_LAYER)
+    std::clog << "Validation layer is enabled." << std::endl;
     layers.push_back("VK_LAYER_KHRONOS_validation");
 #endif
 
     vk::ApplicationInfo appInfo;
-    appInfo.setApiVersion(VK_API_VERSION_1_4);
+    appInfo
+    .setApiVersion(VK_API_VERSION_1_4)
+    .setPApplicationName("Toy2D Application")
+    .setApplicationVersion(VK_MAKE_VERSION(0, 1, 0))
+    .setPEngineName("Toy2D Engine")
+    .setEngineVersion(VK_MAKE_VERSION(0, 1, 0));
+
     createInfo
     .setPApplicationInfo(&appInfo)
     .setPEnabledLayerNames(layers)
@@ -96,13 +119,37 @@ void Context::pickupPhysicalDevice() {
 
 void Context::createDevice() {
     vk::DeviceCreateInfo deviceCreateInfo;
-    vk::DeviceQueueCreateInfo queueCreateInfo;
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     float priorities[] = {1.0f};
-    queueCreateInfo
-    .setPQueuePriorities(priorities)
-    .setQueueCount(1)
-    .setQueueFamilyIndex(queueFamilyIndices.graphicsQueue.value());
-    deviceCreateInfo.setQueueCreateInfos(queueCreateInfo);
+    std::array extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+    // only one queue if graphics queue and present queue are the same
+    if (queueFamilyIndices.graphicsQueue == queueFamilyIndices.presentQueue) {
+        vk::DeviceQueueCreateInfo queueCreateInfo;
+        queueCreateInfo
+        .setPQueuePriorities(priorities)
+        .setQueueCount(1)
+        .setQueueFamilyIndex(queueFamilyIndices.graphicsQueue.value());
+        queueCreateInfos.push_back(queueCreateInfo);
+    } else {
+        vk::DeviceQueueCreateInfo graphicsQueueCreateInfo;
+        graphicsQueueCreateInfo
+        .setPQueuePriorities(priorities)
+        .setQueueCount(1)
+        .setQueueFamilyIndex(queueFamilyIndices.graphicsQueue.value());
+        queueCreateInfos.push_back(graphicsQueueCreateInfo);
+        vk::DeviceQueueCreateInfo presentQueueCreateInfo;
+        presentQueueCreateInfo
+        .setPQueuePriorities(priorities)
+        .setQueueCount(1)
+        .setQueueFamilyIndex(queueFamilyIndices.presentQueue.value());
+        queueCreateInfos.push_back(presentQueueCreateInfo);
+    }
+
+    deviceCreateInfo
+    .setQueueCreateInfos(queueCreateInfos)
+    .setPEnabledExtensionNames(extensions);
+
     device = phyDevice.createDevice(deviceCreateInfo);
 }
 
@@ -112,13 +159,18 @@ void Context::queryQueueFamilyIndices() {
         const auto& property = properties[i];
         if (property.queueFlags & vk::QueueFlagBits::eGraphics) {
             queueFamilyIndices.graphicsQueue = i;
-            break;
         }
+        if (phyDevice.getSurfaceSupportKHR(i, surface)) {
+            queueFamilyIndices.presentQueue = i;
+        }
+        if (queueFamilyIndices) break;
     }
+    if (!queueFamilyIndices) throw std::runtime_error("Failed to find required queue families.");
 }
 
 void Context::getQueues() {
     graphicsQueue = device.getQueue(queueFamilyIndices.graphicsQueue.value(), 0);
+    presentQueue = device.getQueue(queueFamilyIndices.presentQueue.value(), 0);
 }
 
 }

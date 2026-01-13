@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // No OpenGL context
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Toy2D", nullptr, nullptr);
@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
     }
     glfwMakeContextCurrent(window);
 
+    // enable Vulkan instance extensions required by GLFW
     uint32_t ext_cnt;
     auto extensions_c = glfwGetRequiredInstanceExtensions(&ext_cnt);
     std::vector<const char*> extensions(extensions_c, extensions_c + ext_cnt);
@@ -58,7 +59,9 @@ int main(int argc, char* argv[]) {
                 throw std::runtime_error("Failed to create window surface.");
             }
             return surface;
-        }
+        },
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT
     );
 
     while (!glfwWindowShouldClose(window)) {
