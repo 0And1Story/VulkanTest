@@ -10,15 +10,23 @@
 #include "vulkan/vulkan.hpp"
 
 #include <memory>
+#include <optional>
+#include <cstdint>
 
 namespace toy2d {
 
 class Context {
 public:
-    vk::Instance instance;
+    struct QueueFamilyIndices {
+        std::optional<uint32_t> graphicsQueue;
+    };
 
-private:
-    static std::unique_ptr<Context> _instance;
+    vk::Instance instance;
+    vk::PhysicalDevice phyDevice;
+    vk::Device device;
+    vk::Queue graphicsQueue;
+
+    QueueFamilyIndices queueFamilyIndices;
 
 public:
     ~Context();
@@ -26,6 +34,15 @@ public:
     static Context& GetInstance();
     static void Init();
     static void Quit();
+
+    void createInstance();
+    void pickupPhysicalDevice();
+    void createDevice();
+    void queryQueueFamilyIndices();
+    void getQueues();
+
+private:
+    static std::unique_ptr<Context> _instance;
 
 private:
     Context();
