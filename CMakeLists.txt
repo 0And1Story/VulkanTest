@@ -10,7 +10,12 @@ add_executable(vulkan_test src/main.cpp)
 
 # Vulkan SDK
 find_package(Vulkan REQUIRED)
-target_link_libraries(vulkan_test Vulkan::Vulkan)
+link_libraries(vulkan_test Vulkan::Vulkan)
 
 # GLFW
-target_link_libraries(vulkan_test glfw3)
+link_libraries(vulkan_test glfw3)
+
+add_subdirectory(toy2d)
+target_link_libraries(vulkan_test toy2d)
+
+target_include_directories(vulkan_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -6,7 +6,13 @@
   */
 #include "vulkan/vulkan.hpp"
 #include "GLFW/glfw3.h"
+
+#include "toy2d/toy2d.h"
+
 #include <iostream>
+
+const int WINDOW_WIDTH = 1280;
+const int WINDOW_HEIGHT = 720;
 
 int main(int argc, char* argv[]) {
     if (!glfwInit()) {
@@ -21,6 +27,28 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Vulkan is supported!" << std::endl;
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Toy2D", nullptr, nullptr);
+    if (window == nullptr) {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+
+    toy2d::Init();
+
+    while (!glfwWindowShouldClose(window)) {
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    toy2d::Quit();
+
     glfwTerminate();
     return 0;
 }
