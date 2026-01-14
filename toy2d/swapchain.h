@@ -13,6 +13,8 @@ namespace toy2d {
 
 class Swapchain {
 public:
+    vk::SwapchainKHR swapchain;
+
     struct SwapchainInfo {
         vk::Extent2D imageExtent;
         uint32_t imageCount;
@@ -21,14 +23,17 @@ public:
         vk::PresentModeKHR present;
     };
 
-    vk::SwapchainKHR swapchain;
     SwapchainInfo info;
+    std::vector<vk::Image> images;
+    std::vector<vk::ImageView> imageViews;
 
 public:
     Swapchain(int w, int h);
     ~Swapchain();
 
     void queryInfo(int w, int h);
+    void getImages();
+    void createImageViews();
 };
 
 }

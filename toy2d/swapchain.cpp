@@ -39,9 +39,17 @@ Swapchain::Swapchain(int w, int h) {
         .setQueueFamilyIndices(indices)
         .setImageSharingMode(vk::SharingMode::eConcurrent);
     }
+
+    swapchain = Context::GetInstance().device.createSwapchainKHR(createInfo);
+
+    getImages();
+    createImageViews();
 }
 
 Swapchain::~Swapchain() {
+    for (auto& view : imageViews) {
+        Context::GetInstance().device.destroyImageView(view);
+    }
     Context::GetInstance().device.destroySwapchainKHR(swapchain);
 }
 
@@ -75,6 +83,36 @@ void Swapchain::queryInfo(int w, int h) {
             info.present = present;
             break;
         }
+    }
+}
+
+void Swapchain::getImages() {
+    images = Context::GetInstance().device.getSwapchainImagesKHR(swapchain);
+}
+
+void Swapchain::createImageViews() {
+    // create respective image views for each swapchain image
+    imageViews.resize(images.size());
+    for (size_t i = 0; i < images.size(); ++i) {
+        vk::ImageViewCreateInfo createInfo;
+
+        vk::ComponentMapping mapping; // using default as identity mapping
+        vk::ImageSubresourceRange range;
+        range
+        .setBaseMipLevel(0) // no mipmap
+        .setLevelCount(1) // only the original image
+        .setBaseArrayLayer(0) // only one layer for 2D
+        .setLayerCount(1) // only one layer for 2D
+        .setAspectMask(vk::ImageAspectFlagBits::eColor); // color target
+
+        createInfo
+        .setImage(images[i])
+        .setFormat(info.format.format)
+        .setViewType(vk::ImageViewType::e2D) // 2D image
+        .setComponents(mapping)
+        .setSubresourceRange(range);
+
+        imageViews[i] = Context::GetInstance().device.createImageView(createInfo);
     }
 }
 
