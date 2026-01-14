@@ -19,18 +19,23 @@ public:
     vk::ShaderModule vertexModule;
     vk::ShaderModule fragmentModule;
 
+private:
+    static std::unique_ptr<Shader> _instance;
+    std::vector<vk::PipelineShaderStageCreateInfo> _stages;
+
 public:
     static void Init(const std::string& vertexSource, const std::string& fragmentSource);
     static void Quit();
 
     static Shader& GetInstance();
 
+    std::vector<vk::PipelineShaderStageCreateInfo> getStages();
+
     ~Shader();
 
 private:
-    static std::unique_ptr<Shader> _instance;
-
     Shader(const std::string& vertexSource, const std::string& fragmentSource);
+    void initStages();
 };
 
 }

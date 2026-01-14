@@ -34,6 +34,7 @@ Context::Context(const std::vector<const char*>& extensions, CreateSurfaceFunc c
     queryQueueFamilyIndices();
     createDevice();
     getQueues();
+    renderProcess.reset(new RenderProcess);
 }
 
 Context::~Context() noexcept {

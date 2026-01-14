@@ -9,6 +9,7 @@
 
 #include "utility.h"
 #include "swapchain.h"
+#include "render_process.h"
 
 #include "vulkan/vulkan.hpp"
 
@@ -35,6 +36,7 @@ public:
     vk::SurfaceKHR surface;
 
     std::unique_ptr<Swapchain> swapchain;
+    std::unique_ptr<RenderProcess> renderProcess;
 
     QueueFamilyIndices queueFamilyIndices;
 

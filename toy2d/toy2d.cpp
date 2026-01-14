@@ -20,9 +20,11 @@ void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSu
         ReadShaderFile("shader/triangle.vert.spv"),
         ReadShaderFile("shader/triangle.frag.spv")
     );
+    Context::GetInstance().renderProcess->InitPipeline(w, h);
 }
 
 void Quit() {
+    Context::GetInstance().renderProcess->DestroyPipeline();
     Shader::Quit();
     Context::GetInstance().DestroySwapchain();
     Context::Quit();
