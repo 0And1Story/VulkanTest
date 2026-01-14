@@ -7,17 +7,23 @@
 
 #include "toy2d.h"
 
-#include <utility>
+#include "utility.h"
 #include "context.h"
+#include "shader.h"
 
 namespace toy2d {
 
 void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface, int w, int h) {
     Context::Init(extensions, createSurface);
     Context::GetInstance().InitSwapchain(w, h);
+    Shader::Init(
+        ReadShaderFile("shader/triangle.vert.spv"),
+        ReadShaderFile("shader/triangle.frag.spv")
+    );
 }
 
 void Quit() {
+    Shader::Quit();
     Context::GetInstance().DestroySwapchain();
     Context::Quit();
 }

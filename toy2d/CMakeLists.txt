@@ -6,9 +6,11 @@ target_sources(toy2d
         context.h
         utility.h
         swapchain.h
+        shader.h
     PRIVATE
         toy2d.cpp
         context.cpp
         utility.cpp
         swapchain.cpp
+        shader.cpp
 )
