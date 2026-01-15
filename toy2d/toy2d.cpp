@@ -20,6 +20,7 @@ void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSu
     Shader::Init(ReadShaderFile("shader/triangle.vert.spv"),ReadShaderFile("shader/triangle.frag.spv"));
     ctx.InitRenderProcess(w, h);
     ctx.CreateFramebuffers(w, h);
+    ctx.InitCommandManager();
     ctx.InitRenderer();
 }
 
@@ -27,6 +28,7 @@ void Quit() {
     auto& ctx = Context::GetInstance();
     ctx.device.waitIdle();
     ctx.DestroyRenderer();
+    ctx.DestroyCommandManager();
     ctx.DestroyRenderProcess();
     Shader::Quit();
     ctx.DestroySwapchain();

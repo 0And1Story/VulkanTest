@@ -9,25 +9,28 @@
 
 #include "vulkan/vulkan.hpp"
 
+#include <vector>
+
 namespace toy2d {
 
 class Renderer {
 private:
-    vk::CommandPool _cmdPool;
-    vk::CommandBuffer _cmdBuf;
+    int _maxFlightCount;
+    int _curFrame = 0;
 
-    vk::Semaphore _imageAvailable;
-    vk::Semaphore _imageDrawFinished;
-    vk::Fence _cmdAvailable;
+    std::vector<vk::CommandBuffer> _cmdBufs;
+
+    std::vector<vk::Semaphore> _imageAvailableSems;
+    std::vector<vk::Semaphore> _imageRenderFinishedSems;
+    std::vector<vk::Fence> _cmdAvailableFences;
 
 public:
-    Renderer();
+    Renderer(int maxFlightCount = 2);
     ~Renderer();
 
     void DrawTriangle();
 
 private:
-    void initCommandPool();
     void allocCommandBuffer();
     void createSemaphores();
     void createFences();

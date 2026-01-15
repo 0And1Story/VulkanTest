@@ -62,6 +62,14 @@ void Context::CreateFramebuffers(int w, int h) {
     swapchain->createFramebuffers(w, h);
 }
 
+void Context::InitCommandManager() {
+    commandManager.reset(new CommandManager);
+}
+
+void Context::DestroyCommandManager() {
+    commandManager.reset();
+}
+
 void Context::InitRenderer() {
     renderer.reset(new Renderer);
 }

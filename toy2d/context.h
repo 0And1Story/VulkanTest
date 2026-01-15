@@ -11,6 +11,7 @@
 #include "swapchain.h"
 #include "render_process.h"
 #include "renderer.h"
+#include "command_manager.h"
 
 #include "vulkan/vulkan.hpp"
 
@@ -39,6 +40,7 @@ public:
     std::unique_ptr<Swapchain> swapchain;
     std::unique_ptr<RenderProcess> renderProcess;
     std::unique_ptr<Renderer> renderer;
+    std::unique_ptr<CommandManager> commandManager;
 
     QueueFamilyIndices queueFamilyIndices;
 
@@ -54,6 +56,8 @@ public:
     void InitRenderProcess(int w, int h);
     void DestroyRenderProcess();
     void CreateFramebuffers(int w, int h);
+    void InitCommandManager();
+    void DestroyCommandManager();
     void InitRenderer();
     void DestroyRenderer();
 

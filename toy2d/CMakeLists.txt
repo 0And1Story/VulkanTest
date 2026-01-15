@@ -9,6 +9,7 @@ target_sources(toy2d
         shader.h
         render_process.h
         renderer.h
+        command_manager.h
     PRIVATE
         toy2d.cpp
         context.cpp
@@ -17,4 +18,5 @@ target_sources(toy2d
         shader.cpp
         render_process.cpp
         renderer.cpp
+        command_manager.cpp
 )
