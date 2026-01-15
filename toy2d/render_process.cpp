@@ -12,13 +12,13 @@
 
 namespace toy2d {
 
-void RenderProcess::InitRenderProcess(int width, int height) {
+RenderProcess::RenderProcess(int width, int height) {
     InitLayout();
     InitRenderPass();
     InitPipeline(width, height);
 }
 
-void RenderProcess::DestroyRenderProcess() {
+RenderProcess::~RenderProcess() {
     auto& device = Context::GetInstance().device;
     device.destroyPipeline(pipeline);
     device.destroyRenderPass(renderPass);

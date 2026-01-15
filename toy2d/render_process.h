@@ -18,11 +18,12 @@ public:
     vk::RenderPass renderPass;
 
 public:
-    void InitRenderProcess(int width, int height);
+    RenderProcess(int width, int height);
+    ~RenderProcess();
+
     void InitPipeline(int width, int height);
     void InitLayout();
     void InitRenderPass();
-    void DestroyRenderProcess();
 };
 
 }

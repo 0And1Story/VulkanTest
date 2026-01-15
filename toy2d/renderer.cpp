@@ -42,11 +42,11 @@ void Renderer::allocCommandBuffer() {
     _cmdBuf = Context::GetInstance().device.allocateCommandBuffers(allocInfo)[0]; // only one
 }
 
-void Renderer::Render() {
-    auto& context = Context::GetInstance();
-    auto& device = context.device;
-    auto& swapchain = context.swapchain;
-    auto& renderProcess = context.renderProcess;
+void Renderer::DrawTriangle() {
+    auto& ctx = Context::GetInstance();
+    auto& device = ctx.device;
+    auto& swapchain = ctx.swapchain;
+    auto& renderProcess = ctx.renderProcess;
 
     /*
      * Render steps:
@@ -95,7 +95,7 @@ void Renderer::Render() {
     .setWaitSemaphores(_imageAvailable)
     .setSignalSemaphores(_imageDrawFinished)
     .setWaitDstStageMask(waitStage);
-    context.graphicsQueue.submit(submit, _cmdAvailable);
+    ctx.graphicsQueue.submit(submit, _cmdAvailable);
 
     // present
     vk::PresentInfoKHR present;
@@ -103,7 +103,7 @@ void Renderer::Render() {
     .setImageIndices(imageIndex)
     .setSwapchains(swapchain->swapchain)
     .setWaitSemaphores(_imageDrawFinished);
-    if (context.presentQueue.presentKHR(present) != vk::Result::eSuccess) {
+    if (ctx.presentQueue.presentKHR(present) != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to present swapchain image.");
     }
 

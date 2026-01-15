@@ -24,7 +24,7 @@ public:
     Renderer();
     ~Renderer();
 
-    void Render();
+    void DrawTriangle();
 
 private:
     void initCommandPool();

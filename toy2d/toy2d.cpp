@@ -15,22 +15,21 @@ namespace toy2d {
 
 void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSurface, int w, int h) {
     Context::Init(extensions, createSurface);
-    Context::GetInstance().InitSwapchain(w, h);
-    Shader::Init(
-        ReadShaderFile("shader/triangle.vert.spv"),
-        ReadShaderFile("shader/triangle.frag.spv")
-    );
-    Context::GetInstance().renderProcess->InitRenderProcess(w, h);
-    Context::GetInstance().swapchain->createFramebuffers(w, h);
-    Context::GetInstance().InitRenderer();
+    auto& ctx = Context::GetInstance();
+    ctx.InitSwapchain(w, h);
+    Shader::Init(ReadShaderFile("shader/triangle.vert.spv"),ReadShaderFile("shader/triangle.frag.spv"));
+    ctx.InitRenderProcess(w, h);
+    ctx.CreateFramebuffers(w, h);
+    ctx.InitRenderer();
 }
 
 void Quit() {
-    Context::GetInstance().device.waitIdle();
-    Context::GetInstance().DestroyRenderer();
-    Context::GetInstance().renderProcess->DestroyRenderProcess();
+    auto& ctx = Context::GetInstance();
+    ctx.device.waitIdle();
+    ctx.DestroyRenderer();
+    ctx.DestroyRenderProcess();
     Shader::Quit();
-    Context::GetInstance().DestroySwapchain();
+    ctx.DestroySwapchain();
     Context::Quit();
 }
 

@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     while (!glfwWindowShouldClose(window)) {
 //        glfwSwapBuffers(window);
         glfwPollEvents();
-        renderer.Render();
+        renderer.DrawTriangle();
     }
 
     toy2d::Quit();

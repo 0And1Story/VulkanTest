@@ -34,7 +34,6 @@ Context::Context(const std::vector<const char*>& extensions, CreateSurfaceFunc c
     queryQueueFamilyIndices();
     createDevice();
     getQueues();
-    renderProcess.reset(new RenderProcess);
 }
 
 Context::~Context() noexcept {
@@ -49,6 +48,18 @@ void Context::InitSwapchain(int w, int h) {
 
 void Context::DestroySwapchain() {
     swapchain.reset();
+}
+
+void Context::InitRenderProcess(int w, int h) {
+    renderProcess.reset(new RenderProcess(w, h));
+}
+
+void Context::DestroyRenderProcess() {
+    renderProcess.reset();
+}
+
+void Context::CreateFramebuffers(int w, int h) {
+    swapchain->createFramebuffers(w, h);
 }
 
 void Context::InitRenderer() {

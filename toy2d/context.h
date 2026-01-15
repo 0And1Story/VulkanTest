@@ -51,6 +51,9 @@ public:
 
     void InitSwapchain(int w, int h);
     void DestroySwapchain();
+    void InitRenderProcess(int w, int h);
+    void DestroyRenderProcess();
+    void CreateFramebuffers(int w, int h);
     void InitRenderer();
     void DestroyRenderer();
 
