@@ -47,10 +47,14 @@ Swapchain::Swapchain(int w, int h) {
 }
 
 Swapchain::~Swapchain() {
-    for (auto& view : imageViews) {
-        Context::GetInstance().device.destroyImageView(view);
+    auto& device = Context::GetInstance().device;
+    for (auto& framebuffer : framebuffers) {
+        device.destroyFramebuffer(framebuffer);
     }
-    Context::GetInstance().device.destroySwapchainKHR(swapchain);
+    for (auto& view : imageViews) {
+        device.destroyImageView(view);
+    }
+    device.destroySwapchainKHR(swapchain);
 }
 
 void Swapchain::queryInfo(int w, int h) {
@@ -113,6 +117,19 @@ void Swapchain::createImageViews() {
         .setSubresourceRange(range);
 
         imageViews[i] = Context::GetInstance().device.createImageView(createInfo);
+    }
+}
+
+void Swapchain::createFramebuffers(int w, int h) {
+    framebuffers.resize(images.size());
+    for (size_t i = 0; i < framebuffers.size(); ++i) {
+        vk::FramebufferCreateInfo createInfo;
+        createInfo
+        .setAttachments(imageViews[i]) // only one image view as color attachment
+        .setWidth(w).setHeight(h)
+        .setRenderPass(Context::GetInstance().renderProcess->renderPass)
+        .setLayers(1); // only one layer for 2D
+        framebuffers[i] = Context::GetInstance().device.createFramebuffer(createInfo);
     }
 }
 

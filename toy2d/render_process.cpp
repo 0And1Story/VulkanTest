@@ -57,7 +57,7 @@ void RenderProcess::InitPipeline(int width, int height) {
     rasterState
     .setRasterizerDiscardEnable(false) // if true then no output to framebuffer
     .setCullMode(vk::CullModeFlagBits::eBack)
-    .setFrontFace(vk::FrontFace::eCounterClockwise)
+    .setFrontFace(vk::FrontFace::eClockwise)
     .setPolygonMode(vk::PolygonMode::eFill)
     .setLineWidth(1); // no depth settings needed for 2D
     createInfo.setPRasterizationState(&rasterState);
@@ -109,7 +109,7 @@ void RenderProcess::InitRenderPass() {
     attachDesc
     .setFormat(Context::GetInstance().swapchain->info.format.format)
     .setInitialLayout(vk::ImageLayout::eUndefined)
-    .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)
+    .setFinalLayout(vk::ImageLayout::ePresentSrcKHR)
     .setLoadOp(vk::AttachmentLoadOp::eClear)
     .setStoreOp(vk::AttachmentStoreOp::eStore)
     .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare) // no stencil currently

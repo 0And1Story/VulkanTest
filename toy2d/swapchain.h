@@ -26,6 +26,7 @@ public:
     SwapchainInfo info;
     std::vector<vk::Image> images;
     std::vector<vk::ImageView> imageViews;
+    std::vector<vk::Framebuffer> framebuffers;
 
 public:
     Swapchain(int w, int h);
@@ -34,6 +35,7 @@ public:
     void queryInfo(int w, int h);
     void getImages();
     void createImageViews();
+    void createFramebuffers(int w, int h);
 };
 
 }

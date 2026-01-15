@@ -21,6 +21,7 @@ void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSu
         ReadShaderFile("shader/triangle.frag.spv")
     );
     Context::GetInstance().renderProcess->InitRenderProcess(w, h);
+    Context::GetInstance().swapchain->createFramebuffers(w, h);
 }
 
 void Quit() {
