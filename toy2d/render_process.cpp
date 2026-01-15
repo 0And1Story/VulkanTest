@@ -12,6 +12,19 @@
 
 namespace toy2d {
 
+void RenderProcess::InitRenderProcess(int width, int height) {
+    InitLayout();
+    InitRenderPass();
+    InitPipeline(width, height);
+}
+
+void RenderProcess::DestroyRenderProcess() {
+    auto& device = Context::GetInstance().device;
+    device.destroyPipeline(pipeline);
+    device.destroyRenderPass(renderPass);
+    device.destroyPipelineLayout(layout);
+}
+
 void RenderProcess::InitPipeline(int width, int height) {
     vk::GraphicsPipelineCreateInfo createInfo;
 
@@ -67,6 +80,13 @@ void RenderProcess::InitPipeline(int width, int height) {
     blend
     .setLogicOpEnable(false) // disable logic operations
     .setAttachments(attach);
+    createInfo.setPColorBlendState(&blend);
+
+    // 9. Layout
+    createInfo.setLayout(layout);
+
+    // 10. Render Pass
+    createInfo.setRenderPass(renderPass);
 
     auto result = Context::GetInstance().device.createGraphicsPipeline(nullptr, createInfo);
     if (result.result != vk::Result::eSuccess) {
@@ -75,8 +95,50 @@ void RenderProcess::InitPipeline(int width, int height) {
     pipeline = result.value;
 }
 
-void RenderProcess::DestroyPipeline() {
-    Context::GetInstance().device.destroyPipeline(pipeline);
+void RenderProcess::InitLayout() {
+    vk::PipelineLayoutCreateInfo createInfo;
+    // No layout needed currently
+    layout = Context::GetInstance().device.createPipelineLayout(createInfo);
+}
+
+void RenderProcess::InitRenderPass() {
+    vk::RenderPassCreateInfo createInfo;
+
+    // Attachments
+    vk::AttachmentDescription attachDesc;
+    attachDesc
+    .setFormat(Context::GetInstance().swapchain->info.format.format)
+    .setInitialLayout(vk::ImageLayout::eUndefined)
+    .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)
+    .setLoadOp(vk::AttachmentLoadOp::eClear)
+    .setStoreOp(vk::AttachmentStoreOp::eStore)
+    .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare) // no stencil currently
+    .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+    .setSamples(vk::SampleCountFlagBits::e1);
+    createInfo.setAttachments(attachDesc);
+
+    // Subpasses
+    vk::AttachmentReference attachRef;
+    attachRef
+    .setLayout(vk::ImageLayout::eColorAttachmentOptimal)
+    .setAttachment(0); // only one attachment, index = 0
+    vk::SubpassDescription subpass;
+    subpass
+    .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics) // graphics subpass
+    .setColorAttachments(attachRef); // 1+ color, 0+ depth&stencil
+    createInfo.setSubpasses(subpass);
+
+    // Dependencies
+    vk::SubpassDependency dependency;
+    dependency
+    .setSrcSubpass(VK_SUBPASS_EXTERNAL) // the vk init subpass
+    .setDstSubpass(0) // our subpass index
+    .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite)
+    .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+    .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    createInfo.setDependencies(dependency);
+
+    renderPass = Context::GetInstance().device.createRenderPass(createInfo);
 }
 
 }

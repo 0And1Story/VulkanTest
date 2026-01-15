@@ -14,10 +14,15 @@ namespace toy2d {
 class RenderProcess {
 public:
     vk::Pipeline pipeline;
+    vk::PipelineLayout layout;
+    vk::RenderPass renderPass;
 
 public:
+    void InitRenderProcess(int width, int height);
     void InitPipeline(int width, int height);
-    void DestroyPipeline();
+    void InitLayout();
+    void InitRenderPass();
+    void DestroyRenderProcess();
 };
 
 }
