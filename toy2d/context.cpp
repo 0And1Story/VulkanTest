@@ -51,6 +51,14 @@ void Context::DestroySwapchain() {
     swapchain.reset();
 }
 
+void Context::InitRenderer() {
+    renderer.reset(new Renderer);
+}
+
+void Context::DestroyRenderer() {
+    renderer.reset();
+}
+
 void Context::createInstance(const std::vector<const char*>& extensions) {
     vk::InstanceCreateInfo createInfo;
     std::vector<const char*> layers;

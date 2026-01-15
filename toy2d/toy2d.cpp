@@ -22,13 +22,20 @@ void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSu
     );
     Context::GetInstance().renderProcess->InitRenderProcess(w, h);
     Context::GetInstance().swapchain->createFramebuffers(w, h);
+    Context::GetInstance().InitRenderer();
 }
 
 void Quit() {
+    Context::GetInstance().device.waitIdle();
+    Context::GetInstance().DestroyRenderer();
     Context::GetInstance().renderProcess->DestroyRenderProcess();
     Shader::Quit();
     Context::GetInstance().DestroySwapchain();
     Context::Quit();
+}
+
+Renderer& GetRenderer() {
+    return *Context::GetInstance().renderer;
 }
 
 }

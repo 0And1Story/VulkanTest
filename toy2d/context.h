@@ -10,6 +10,7 @@
 #include "utility.h"
 #include "swapchain.h"
 #include "render_process.h"
+#include "renderer.h"
 
 #include "vulkan/vulkan.hpp"
 
@@ -37,6 +38,7 @@ public:
 
     std::unique_ptr<Swapchain> swapchain;
     std::unique_ptr<RenderProcess> renderProcess;
+    std::unique_ptr<Renderer> renderer;
 
     QueueFamilyIndices queueFamilyIndices;
 
@@ -49,6 +51,8 @@ public:
 
     void InitSwapchain(int w, int h);
     void DestroySwapchain();
+    void InitRenderer();
+    void DestroyRenderer();
 
     void createInstance(const std::vector<const char*>& extensions);
     void pickupPhysicalDevice();

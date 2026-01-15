@@ -64,9 +64,12 @@ int main(int argc, char* argv[]) {
         WINDOW_HEIGHT
     );
 
+    auto& renderer = toy2d::GetRenderer();
+
     while (!glfwWindowShouldClose(window)) {
 //        glfwSwapBuffers(window);
         glfwPollEvents();
+        renderer.Render();
     }
 
     toy2d::Quit();

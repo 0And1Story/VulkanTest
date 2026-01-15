@@ -8,6 +8,7 @@ target_sources(toy2d
         swapchain.h
         shader.h
         render_process.h
+        renderer.h
     PRIVATE
         toy2d.cpp
         context.cpp
@@ -15,4 +16,5 @@ target_sources(toy2d
         swapchain.cpp
         shader.cpp
         render_process.cpp
+        renderer.cpp
 )
