@@ -28,7 +28,8 @@ private:
     std::vector<vk::Semaphore> _imageRenderFinishedSems;
     std::vector<vk::Fence> _cmdAvailableFences;
 
-    std::unique_ptr<Buffer> _vertexBuffer;
+    std::unique_ptr<Buffer> _hostVertexBuffer;
+    std::unique_ptr<Buffer> _deviceVertexBuffer;
 
     static constexpr auto clearColor = vk::ClearColorValue(std::array<float,4> {0.1f, 0.1f, 0.1f, 1.0f});
 

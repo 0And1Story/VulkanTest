@@ -52,18 +52,56 @@ void Renderer::createFences() {
 }
 
 void Renderer::createVertexBuffer(size_t size) {
-    _vertexBuffer.reset(new Buffer(
-        size,
-        vk::BufferUsageFlagBits::eVertexBuffer,
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
-    ));
+    // Coherent Memory (Simpler):
+    // _vertexBuffer.reset(new Buffer(
+    //     size,
+    //     vk::BufferUsageFlagBits::eVertexBuffer,
+    //     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+    // ));
+
+     _hostVertexBuffer.reset(new Buffer(
+         size,
+         vk::BufferUsageFlagBits::eTransferSrc,
+         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+     ));
+     _deviceVertexBuffer.reset(new Buffer(
+         size,
+         vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+         vk::MemoryPropertyFlagBits::eDeviceLocal
+     ));
 }
 
 void Renderer::bufferVertexData(void* data) {
     auto& device = Context::GetInstance().device;
-    void* mapped = device.mapMemory(_vertexBuffer->memory, 0, _vertexBuffer->size); {
-        std::memcpy(mapped, data, _vertexBuffer->size);
-    } device.unmapMemory(_vertexBuffer->memory);
+
+    // Coherent Memory (Simpler):
+    // void* mapped = device.mapMemory(_vertexBuffer->memory, 0, _vertexBuffer->size); {
+    //     std::memcpy(mapped, data, _vertexBuffer->size);
+    // } device.unmapMemory(_vertexBuffer->memory);
+
+    auto& ctx = Context::GetInstance();
+
+    void* mapped = device.mapMemory(_hostVertexBuffer->memory, 0, _hostVertexBuffer->size); {
+        std::memcpy(mapped, data, _hostVertexBuffer->size);
+    } device.unmapMemory(_hostVertexBuffer->memory);
+
+    auto cmdBuf = ctx.commandManager->AllocCommandBuffer();
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+    cmdBuf.begin(beginInfo); {
+        vk::BufferCopy region;
+        region.setSrcOffset(0).setDstOffset(0).setSize(_hostVertexBuffer->size);
+        cmdBuf.copyBuffer(_hostVertexBuffer->buffer, _deviceVertexBuffer->buffer, region);
+    } cmdBuf.end();
+
+    vk::SubmitInfo submit;
+    submit.setCommandBuffers(cmdBuf);
+    ctx.graphicsQueue.submit(submit);
+
+    // wait for transfer to finish
+    ctx.device.waitIdle();
+
+    ctx.commandManager->FreeCommandBuffer(cmdBuf);
 }
 
 void Renderer::SetTriangle(const std::array<vec2, 3>& vertices) {
@@ -123,7 +161,7 @@ void Renderer::DrawTriangle() {
 
         _cmdBuf.beginRenderPass(renderPassBegin, {}); { // what is contents?
             _cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, renderProcess->pipeline);
-            _cmdBuf.bindVertexBuffers(0, _vertexBuffer->buffer, {0});
+            _cmdBuf.bindVertexBuffers(0, _deviceVertexBuffer->buffer, {0});
             _cmdBuf.draw(3, 1, 0, 0); // draw one triangle with 3 vertices
         } _cmdBuf.endRenderPass();
     } _cmdBuf.end();
