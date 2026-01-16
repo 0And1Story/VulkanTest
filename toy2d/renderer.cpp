@@ -5,9 +5,9 @@
   * @brief  
   */
 
-#include "renderer.h"
+#include "renderer.hpp"
 
-#include "context.h"
+#include "context.hpp"
 
 namespace toy2d {
 

@@ -5,9 +5,9 @@
   * @brief  
   */
 
-#include "shader.h"
+#include "shader.hpp"
 
-#include "context.h"
+#include "context.hpp"
 
 namespace toy2d {
 

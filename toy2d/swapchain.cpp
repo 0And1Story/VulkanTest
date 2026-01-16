@@ -5,9 +5,9 @@
   * @brief  
   */
 
-#include "swapchain.h"
+#include "swapchain.hpp"
 
-#include "context.h"
+#include "context.hpp"
 
 namespace toy2d {
 

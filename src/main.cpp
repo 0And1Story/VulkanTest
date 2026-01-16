@@ -7,7 +7,7 @@
 #include "vulkan/vulkan.hpp"
 #include "GLFW/glfw3.h"
 
-#include "toy2d/toy2d.h"
+#include "toy2d/toy2d.hpp"
 
 #include <iostream>
 #include <vector>

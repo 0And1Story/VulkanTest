@@ -2,14 +2,14 @@ add_library(toy2d)
 
 target_sources(toy2d
     PUBLIC
-        toy2d.h
-        context.h
-        utility.h
-        swapchain.h
-        shader.h
-        render_process.h
-        renderer.h
-        command_manager.h
+        toy2d.hpp
+        context.hpp
+        utility.hpp
+        swapchain.hpp
+        shader.hpp
+        render_process.hpp
+        renderer.hpp
+        command_manager.hpp
     PRIVATE
         toy2d.cpp
         context.cpp

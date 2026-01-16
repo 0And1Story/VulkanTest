@@ -5,10 +5,10 @@
   * @brief  
   */
 
-#include "render_process.h"
+#include "render_process.hpp"
 
-#include "context.h"
-#include "shader.h"
+#include "context.hpp"
+#include "shader.hpp"
 
 namespace toy2d {
 

@@ -5,7 +5,7 @@
   * @brief  
   */
 
-#include "utility.h"
+#include "utility.hpp"
 
 namespace toy2d {
 

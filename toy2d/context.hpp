@@ -1,5 +1,5 @@
 /**
-  * @file   context.h
+  * @file   context.hpp
   * @author 0And1Story
   * @date   2026-01-13
   * @brief  
@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include "utility.h"
-#include "swapchain.h"
-#include "render_process.h"
-#include "renderer.h"
-#include "command_manager.h"
+#include "utility.hpp"
+#include "swapchain.hpp"
+#include "render_process.hpp"
+#include "renderer.hpp"
+#include "command_manager.hpp"
 
 #include "vulkan/vulkan.hpp"
 

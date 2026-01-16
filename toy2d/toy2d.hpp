@@ -1,5 +1,5 @@
 /**
-  * @file   toy2d.h
+  * @file   toy2d.hpp
   * @author 0And1Story
   * @date   2026-01-13
   * @brief  
@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include "utility.h"
+#include "utility.hpp"
 
 #include "vulkan/vulkan.hpp"
 
-#include "renderer.h"
+#include "renderer.hpp"
 
 #include <vector>
 #include <functional>

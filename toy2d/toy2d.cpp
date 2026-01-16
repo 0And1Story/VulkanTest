@@ -5,11 +5,11 @@
   * @brief  
   */
 
-#include "toy2d.h"
+#include "toy2d.hpp"
 
-#include "utility.h"
-#include "context.h"
-#include "shader.h"
+#include "utility.hpp"
+#include "context.hpp"
+#include "shader.hpp"
 
 namespace toy2d {
 
