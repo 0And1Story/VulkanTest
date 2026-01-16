@@ -51,6 +51,26 @@ void Renderer::createFences() {
     for (auto& fence : _cmdAvailableFences) fence = device.createFence(createInfo);
 }
 
+void Renderer::createVertexBuffer(size_t size) {
+    _vertexBuffer.reset(new Buffer(
+        size,
+        vk::BufferUsageFlagBits::eVertexBuffer,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+    ));
+}
+
+void Renderer::bufferVertexData(void* data) {
+    auto& device = Context::GetInstance().device;
+    void* mapped = device.mapMemory(_vertexBuffer->memory, 0, _vertexBuffer->size); {
+        std::memcpy(mapped, data, _vertexBuffer->size);
+    } device.unmapMemory(_vertexBuffer->memory);
+}
+
+void Renderer::SetTriangle(const std::array<vec2, 3>& vertices) {
+    createVertexBuffer(sizeof(vertices));
+    bufferVertexData((void*)vertices.data());
+}
+
 void Renderer::DrawTriangle() {
     auto& ctx = Context::GetInstance();
     auto& device = ctx.device;
@@ -94,7 +114,7 @@ void Renderer::DrawTriangle() {
 
         vk::Rect2D area({0, 0}, swapchain->info.imageExtent);
         vk::ClearValue clearValue;
-        clearValue.color = vk::ClearColorValue(std::array<float,4> {0.1f, 0.1f, 0.1f, 1.0f});
+        clearValue.color = Renderer::clearColor;
         renderPassBegin
         .setRenderPass(renderProcess->renderPass)
         .setFramebuffer(swapchain->framebuffers[imageIndex])
@@ -103,6 +123,7 @@ void Renderer::DrawTriangle() {
 
         _cmdBuf.beginRenderPass(renderPassBegin, {}); { // what is contents?
             _cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, renderProcess->pipeline);
+            _cmdBuf.bindVertexBuffers(0, _vertexBuffer->buffer, {0});
             _cmdBuf.draw(3, 1, 0, 0); // draw one triangle with 3 vertices
         } _cmdBuf.endRenderPass();
     } _cmdBuf.end();

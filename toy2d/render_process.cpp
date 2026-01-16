@@ -9,6 +9,7 @@
 
 #include "context.hpp"
 #include "shader.hpp"
+#include "vertex.hpp"
 
 namespace toy2d {
 
@@ -30,6 +31,11 @@ void RenderProcess::InitPipeline(int width, int height) {
 
     // 1. Vertex Input
     vk::PipelineVertexInputStateCreateInfo inputState;
+    auto attribute = vec2::getAttribute(); // TODO: refactor for multiple vertex types
+    auto binding = vec2::getBinding();
+    inputState
+    .setVertexAttributeDescriptions(attribute)
+    .setVertexBindingDescriptions(binding);
     createInfo.setPVertexInputState(&inputState);
 
     // 2. Vertex Assembly

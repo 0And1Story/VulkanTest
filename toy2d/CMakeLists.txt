@@ -1,22 +1,11 @@
 add_library(toy2d)
 
+file(GLOB TOY2D_HEADERS "*.hpp")
+file(GLOB TOY2D_SOURCES "*.cpp")
+
 target_sources(toy2d
     PUBLIC
-        toy2d.hpp
-        context.hpp
-        utility.hpp
-        swapchain.hpp
-        shader.hpp
-        render_process.hpp
-        renderer.hpp
-        command_manager.hpp
+        ${TOY2D_HEADERS}
     PRIVATE
-        toy2d.cpp
-        context.cpp
-        utility.cpp
-        swapchain.cpp
-        shader.cpp
-        render_process.cpp
-        renderer.cpp
-        command_manager.cpp
+        ${TOY2D_SOURCES}
 )

@@ -11,9 +11,17 @@
 
 #include <iostream>
 #include <vector>
+#include <array>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
+
+using toy2d::vec2;
+static std::array<vec2, 3> vertices = {
+    vec2(0.0, -0.5),
+    vec2(0.35, 0.5),
+    vec2(-0.35, 0.5)
+};
 
 int main(int argc, char* argv[]) {
     if (!glfwInit()) {
@@ -65,6 +73,8 @@ int main(int argc, char* argv[]) {
     );
 
     auto& renderer = toy2d::GetRenderer();
+
+    renderer.SetTriangle(vertices);
 
     while (!glfwWindowShouldClose(window)) {
 //        glfwSwapBuffers(window);
