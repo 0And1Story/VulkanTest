@@ -80,11 +80,19 @@ void RenderProcess::InitPipeline(int width, int height) {
     // 7. Test (No need for 2D)
 
     // 8. Color Blending
+    // NewColor = SrcAlpha * SrcColor + (1 - SrcAlpha) * DstColor
+    // NewAlpha = 1 * SrcAlpha + 0 * DstAlpha
     vk::PipelineColorBlendStateCreateInfo blend;
     vk::PipelineColorBlendAttachmentState attach;
     attach
-    .setBlendEnable(false)
-    .setColorWriteMask(vk::ColorComponentFlagBits::eA | vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB);
+    .setBlendEnable(true)
+    .setColorWriteMask(vk::ColorComponentFlagBits::eA | vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB)
+    .setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha)
+    .setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha)
+    .setColorBlendOp(vk::BlendOp::eAdd)
+    .setSrcAlphaBlendFactor(vk::BlendFactor::eOne)
+    .setDstAlphaBlendFactor(vk::BlendFactor::eZero)
+    .setAlphaBlendOp(vk::BlendOp::eAdd);
     blend
     .setLogicOpEnable(false) // disable logic operations
     .setAttachments(attach);

@@ -9,5 +9,5 @@ layout(binding = 0) uniform UniformObject {
 } ubo;
 
 void main() {
-  outColor = vec4(fragColor * ubo.opacity, 1.0);
+  outColor = vec4(fragColor, ubo.opacity);
 }
