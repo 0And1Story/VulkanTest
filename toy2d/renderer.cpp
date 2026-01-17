@@ -15,11 +15,20 @@ Renderer::Renderer(int maxFlightCount) : _maxFlightCount(maxFlightCount) {
     allocCommandBuffer();
     createSemaphores();
     createFences();
+    createVertexBuffer(sizeof(vec2[3]));
+    createUniformBuffer(sizeof(UniformObject));
+    createDescriptorPool();
+    allocDescriptorSets();
+    updateDescriptorSets();
 }
 
 Renderer::~Renderer() {
     auto& device = Context::GetInstance().device;
     auto& cmdMgr = Context::GetInstance().commandManager;
+    device.destroyDescriptorPool(_descriptorPool);
+    _hostVertexBuffer.reset();
+    _deviceVertexBuffer.reset();
+    _uniformBuffers.clear();
     for (auto& sem : _imageAvailableSems) device.destroySemaphore(sem);
     for (auto& sem : _imageRenderFinishedSems) device.destroySemaphore(sem);
     for (auto& fence : _cmdAvailableFences) device.destroyFence(fence);
@@ -104,9 +113,86 @@ void Renderer::bufferVertexData(void* data) {
     ctx.commandManager->FreeCommandBuffer(cmdBuf);
 }
 
+void Renderer::createUniformBuffer(size_t size) {
+    _uniformBuffers.resize(_maxFlightCount);
+
+    for (auto& buffer : _uniformBuffers) {
+        buffer.reset(new Buffer(
+            size,
+            vk::BufferUsageFlagBits::eUniformBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+        ));
+    }
+}
+
+void Renderer::bufferUniformData(void* data) {
+    auto& device = Context::GetInstance().device;
+
+    for (auto& buffer : _uniformBuffers) {
+        void* mapped = device.mapMemory(buffer->memory, 0, buffer->size); {
+            std::memcpy(mapped, data, buffer->size);
+        } device.unmapMemory(buffer->memory);
+    }
+}
+
+void Renderer::createDescriptorPool() {
+    vk::DescriptorPoolCreateInfo createInfo;
+    std::vector<vk::DescriptorPoolSize> poolSizes(1);
+
+    poolSizes[0]
+    .setType(vk::DescriptorType::eUniformBuffer) // for uniform
+    .setDescriptorCount(_maxFlightCount);
+
+    // poolSizes[1]
+    // .setType(vk::DescriptorType::eSampledImage) // for sampler image
+    // .setDescriptorCount(_maxFlightCount);
+
+    createInfo
+    .setMaxSets(_maxFlightCount)
+    .setPoolSizes(poolSizes);
+    _descriptorPool = Context::GetInstance().device.createDescriptorPool(createInfo);
+}
+
+void Renderer::allocDescriptorSets() {
+    auto& ctx = Context::GetInstance();
+
+    std::vector<vk::DescriptorSetLayout> layouts(_maxFlightCount, ctx.renderProcess->descriptorSetLayout);
+
+    vk::DescriptorSetAllocateInfo allocInfo;
+    allocInfo
+    .setDescriptorPool(_descriptorPool)
+    .setDescriptorSetCount(_maxFlightCount)
+    .setSetLayouts(layouts);
+    _descriptorSets = ctx.device.allocateDescriptorSets(allocInfo);
+}
+
+void Renderer::updateDescriptorSets() {
+    auto& ctx = Context::GetInstance();
+    for (size_t i = 0; i < _descriptorSets.size(); ++i) {
+        auto& descriptorSet = _descriptorSets[i];
+        vk::WriteDescriptorSet writer;
+        vk::DescriptorBufferInfo bufferInfo;
+        bufferInfo
+        .setBuffer(_uniformBuffers[i]->buffer)
+        .setOffset(0)
+        .setRange(_uniformBuffers[i]->size);
+        writer
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(1)
+        .setDstSet(descriptorSet)
+        .setDstBinding(0)
+        .setDstArrayElement(0)
+        .setBufferInfo(bufferInfo);
+        ctx.device.updateDescriptorSets(writer, {}); // what is descriptor copies?
+    }
+}
+
 void Renderer::SetTriangle(const std::array<vec2, 3>& vertices) {
-    createVertexBuffer(sizeof(vertices));
     bufferVertexData((void*)vertices.data());
+}
+
+void Renderer::SetUniformObject(const toy2d::UniformObject& ubo) {
+    bufferUniformData((void*)&ubo);
 }
 
 void Renderer::DrawTriangle() {
@@ -126,6 +212,7 @@ void Renderer::DrawTriangle() {
     auto& _cmdBuf = _cmdBufs[_curFrame];
     auto& _imageAvailable = _imageAvailableSems[_curFrame];
     auto& _cmdAvailable = _cmdAvailableFences[_curFrame];
+    auto& _descriptorSet = _descriptorSets[_curFrame];
 
     // fences
     if (device.waitForFences(_cmdAvailable,
@@ -162,6 +249,7 @@ void Renderer::DrawTriangle() {
         _cmdBuf.beginRenderPass(renderPassBegin, {}); { // what is contents?
             _cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, renderProcess->pipeline);
             _cmdBuf.bindVertexBuffers(0, _deviceVertexBuffer->buffer, {0});
+            _cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, renderProcess->layout, 0, _descriptorSet, {});
             _cmdBuf.draw(3, 1, 0, 0); // draw one triangle with 3 vertices
         } _cmdBuf.endRenderPass();
     } _cmdBuf.end();

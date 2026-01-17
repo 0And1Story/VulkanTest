@@ -10,6 +10,7 @@
 #include "context.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
+#include "uniform.hpp"
 
 namespace toy2d {
 
@@ -21,6 +22,7 @@ RenderProcess::RenderProcess(int width, int height) {
 
 RenderProcess::~RenderProcess() {
     auto& device = Context::GetInstance().device;
+    device.destroyDescriptorSetLayout(descriptorSetLayout);
     device.destroyPipeline(pipeline);
     device.destroyRenderPass(renderPass);
     device.destroyPipelineLayout(layout);
@@ -102,9 +104,18 @@ void RenderProcess::InitPipeline(int width, int height) {
 }
 
 void RenderProcess::InitLayout() {
+    auto& device = Context::GetInstance().device;
     vk::PipelineLayoutCreateInfo createInfo;
-    // No layout needed currently
-    layout = Context::GetInstance().device.createPipelineLayout(createInfo);
+
+    vk::DescriptorSetLayoutCreateInfo layoutCreateInfo;
+    vk::DescriptorSetLayoutBinding binding;
+
+    binding = UniformObject::getBinding();
+    layoutCreateInfo.setBindings(binding);
+    descriptorSetLayout = device.createDescriptorSetLayout(layoutCreateInfo);
+
+    createInfo.setSetLayouts(descriptorSetLayout);
+    layout = device.createPipelineLayout(createInfo);
 }
 
 void RenderProcess::InitRenderPass() {

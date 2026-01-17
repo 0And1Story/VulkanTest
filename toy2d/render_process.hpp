@@ -17,6 +17,8 @@ public:
     vk::PipelineLayout layout;
     vk::RenderPass renderPass;
 
+    vk::DescriptorSetLayout descriptorSetLayout; // only one set layout currently
+
 public:
     RenderProcess(int width, int height);
     ~RenderProcess();

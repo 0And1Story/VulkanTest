@@ -22,6 +22,21 @@ static std::array<vec2, 3> vertices = {
     vec2(0.35, 0.5),
     vec2(-0.35, 0.5)
 };
+static toy2d::UniformObject ubo {
+    .opacity = 1.0f
+};
+toy2d::Renderer* pRenderer;
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+        ubo.opacity = 0.5f;
+        pRenderer->SetUniformObject(ubo);
+    }
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
+        ubo.opacity = 1.0f;
+        pRenderer->SetUniformObject(ubo);
+    }
+}
 
 int main(int argc, char* argv[]) {
     if (!glfwInit()) {
@@ -48,7 +63,6 @@ int main(int argc, char* argv[]) {
         glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(window);
 
     // enable Vulkan instance extensions required by GLFW
     uint32_t ext_cnt;
@@ -73,11 +87,13 @@ int main(int argc, char* argv[]) {
     );
 
     auto& renderer = toy2d::GetRenderer();
+    pRenderer = &renderer;
+    glfwSetKeyCallback(window, key_callback);
 
     renderer.SetTriangle(vertices);
+    renderer.SetUniformObject(ubo);
 
     while (!glfwWindowShouldClose(window)) {
-//        glfwSwapBuffers(window);
         glfwPollEvents();
         renderer.DrawTriangle();
     }

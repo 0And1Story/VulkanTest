@@ -11,6 +11,7 @@
 
 #include "buffer.hpp"
 #include "vertex.hpp"
+#include "uniform.hpp"
 
 #include <vector>
 #include <memory>
@@ -30,6 +31,10 @@ private:
 
     std::unique_ptr<Buffer> _hostVertexBuffer;
     std::unique_ptr<Buffer> _deviceVertexBuffer;
+    std::vector<std::unique_ptr<Buffer>> _uniformBuffers; // use coherent memory for volatile updates
+
+    vk::DescriptorPool _descriptorPool;
+    std::vector<vk::DescriptorSet> _descriptorSets;
 
     static constexpr auto clearColor = vk::ClearColorValue(std::array<float,4> {0.1f, 0.1f, 0.1f, 1.0f});
 
@@ -38,6 +43,7 @@ public:
     ~Renderer();
 
     void SetTriangle(const std::array<vec2, 3>& vertices);
+    void SetUniformObject(const UniformObject& ubo);
     void DrawTriangle();
 
 private:
@@ -46,6 +52,11 @@ private:
     void createFences();
     void createVertexBuffer(size_t size);
     void bufferVertexData(void* data);
+    void createUniformBuffer(size_t size);
+    void bufferUniformData(void* data);
+    void createDescriptorPool();
+    void allocDescriptorSets();
+    void updateDescriptorSets();
 };
 
 }

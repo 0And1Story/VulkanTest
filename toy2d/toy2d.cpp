@@ -17,7 +17,7 @@ void Init(const std::vector<const char*>& extensions, CreateSurfaceFunc createSu
     Context::Init(extensions, createSurface);
     auto& ctx = Context::GetInstance();
     ctx.InitSwapchain(w, h);
-    Shader::Init(ReadShaderFile("shader/triangle.vert.spv"),ReadShaderFile("shader/triangle.frag.spv"));
+    Shader::Init(ReadShaderFile("shader/triangle.vert.spv"),ReadShaderFile("shader/triangle-uniform.frag.spv"));
     ctx.InitRenderProcess(w, h);
     ctx.CreateFramebuffers(w, h);
     ctx.InitCommandManager();
