@@ -17,10 +17,20 @@ const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
 
 using toy2d::vec2;
-static std::array<vec2, 3> vertices = {
+static std::array<vec2, 3> triangle_vertices = {
     vec2(0.0, -0.5),
     vec2(0.35, 0.5),
     vec2(-0.35, 0.5)
+};
+static std::array<vec2, 4> rect_vertices = {
+    vec2(-0.5, -0.5),
+    vec2(0.5, -0.5),
+    vec2(0.5, 0.5),
+    vec2(-0.5, 0.5)
+};
+static std::array<uint32_t, 6> rect_indices = {
+    0, 1, 2,
+    2, 3, 0
 };
 static toy2d::UniformObject ubo {
     .opacity = 1.0f
@@ -90,12 +100,19 @@ int main(int argc, char* argv[]) {
     pRenderer = &renderer;
     glfwSetKeyCallback(window, key_callback);
 
-    renderer.SetTriangle(vertices);
+    // Draw Triangle:
+    // renderer.InitTriangle();
+    // renderer.SetTriangle(triangle_vertices);
+    // renderer.SetUniformObject(ubo);
+
+    renderer.InitRectangle();
+    renderer.SetRectangle(rect_vertices, rect_indices);
     renderer.SetUniformObject(ubo);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        renderer.DrawTriangle();
+        // renderer.DrawTriangle();
+        renderer.DrawRectangle();
     }
 
     toy2d::Quit();

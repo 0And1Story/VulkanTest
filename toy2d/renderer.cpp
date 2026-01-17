@@ -15,7 +15,6 @@ Renderer::Renderer(int maxFlightCount) : _maxFlightCount(maxFlightCount) {
     allocCommandBuffer();
     createSemaphores();
     createFences();
-    createVertexBuffer(sizeof(vec2[3]));
     createUniformBuffer(sizeof(UniformObject));
     createDescriptorPool();
     allocDescriptorSets();
@@ -28,6 +27,8 @@ Renderer::~Renderer() {
     device.destroyDescriptorPool(_descriptorPool);
     _hostVertexBuffer.reset();
     _deviceVertexBuffer.reset();
+    _hostIndexBuffer.reset();
+    _deviceIndexBuffer.reset();
     _uniformBuffers.clear();
     for (auto& sem : _imageAvailableSems) device.destroySemaphore(sem);
     for (auto& sem : _imageRenderFinishedSems) device.destroySemaphore(sem);
@@ -101,6 +102,45 @@ void Renderer::bufferVertexData(void* data) {
         vk::BufferCopy region;
         region.setSrcOffset(0).setDstOffset(0).setSize(_hostVertexBuffer->size);
         cmdBuf.copyBuffer(_hostVertexBuffer->buffer, _deviceVertexBuffer->buffer, region);
+    } cmdBuf.end();
+
+    vk::SubmitInfo submit;
+    submit.setCommandBuffers(cmdBuf);
+    ctx.graphicsQueue.submit(submit);
+
+    // wait for transfer to finish
+    ctx.device.waitIdle();
+
+    ctx.commandManager->FreeCommandBuffer(cmdBuf);
+}
+
+void Renderer::createIndexBuffer(size_t size) {
+    _hostIndexBuffer.reset(new Buffer(
+            size,
+            vk::BufferUsageFlagBits::eTransferSrc,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+    ));
+    _deviceIndexBuffer.reset(new Buffer(
+            size,
+            vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+            vk::MemoryPropertyFlagBits::eDeviceLocal
+    ));
+}
+
+void Renderer::bufferIndexData(void* data) {
+    auto& ctx = Context::GetInstance();
+
+    void* mapped = ctx.device.mapMemory(_hostIndexBuffer->memory, 0, _hostIndexBuffer->size); {
+        std::memcpy(mapped, data, _hostIndexBuffer->size);
+    } ctx.device.unmapMemory(_hostIndexBuffer->memory);
+
+    auto cmdBuf = ctx.commandManager->AllocCommandBuffer();
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+    cmdBuf.begin(beginInfo); {
+        vk::BufferCopy region;
+        region.setSrcOffset(0).setDstOffset(0).setSize(_hostIndexBuffer->size);
+        cmdBuf.copyBuffer(_hostIndexBuffer->buffer, _deviceIndexBuffer->buffer, region);
     } cmdBuf.end();
 
     vk::SubmitInfo submit;
@@ -187,15 +227,52 @@ void Renderer::updateDescriptorSets() {
     }
 }
 
+void Renderer::InitTriangle() {
+    createVertexBuffer(sizeof(vec2[3]));
+}
+
 void Renderer::SetTriangle(const std::array<vec2, 3>& vertices) {
     bufferVertexData((void*)vertices.data());
+}
+
+void Renderer::DrawTriangle() {
+    auto& renderProcess = Context::GetInstance().renderProcess;
+    auto& _descriptorSet = _descriptorSets[_curFrame];
+    Render([&](vk::CommandBuffer& cmdBuf) {
+        cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, renderProcess->pipeline);
+        cmdBuf.bindVertexBuffers(0, _deviceVertexBuffer->buffer, {0});
+        cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, renderProcess->layout, 0, _descriptorSet, {});
+        cmdBuf.draw(3, 1, 0, 0); // draw one triangle with 3 vertices
+    });
+}
+
+void Renderer::InitRectangle() {
+    createVertexBuffer(sizeof(vec2[4]));
+    createIndexBuffer(sizeof(uint32_t[6]));
+}
+
+void Renderer::SetRectangle(const std::array<vec2, 4>& vertices, const std::array<uint32_t, 6>& indices) {
+    bufferVertexData((void*)vertices.data());
+    bufferIndexData((void*)indices.data());
+}
+
+void Renderer::DrawRectangle() {
+    auto& renderProcess = Context::GetInstance().renderProcess;
+    auto& _descriptorSet = _descriptorSets[_curFrame];
+    Render([&](vk::CommandBuffer& cmdBuf) {
+        cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, renderProcess->pipeline);
+        cmdBuf.bindVertexBuffers(0, _deviceVertexBuffer->buffer, {0});
+        cmdBuf.bindIndexBuffer(_deviceIndexBuffer->buffer, 0, vk::IndexType::eUint32);
+        cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, renderProcess->layout, 0, _descriptorSet, {});
+        cmdBuf.drawIndexed(6, 1, 0, 0, 0); // draw rectangle with 6 indices
+    });
 }
 
 void Renderer::SetUniformObject(const toy2d::UniformObject& ubo) {
     bufferUniformData((void*)&ubo);
 }
 
-void Renderer::DrawTriangle() {
+void Renderer::Render(std::function<void(vk::CommandBuffer&)> renderPassFunc) {
     auto& ctx = Context::GetInstance();
     auto& device = ctx.device;
     auto& swapchain = ctx.swapchain;
@@ -212,7 +289,6 @@ void Renderer::DrawTriangle() {
     auto& _cmdBuf = _cmdBufs[_curFrame];
     auto& _imageAvailable = _imageAvailableSems[_curFrame];
     auto& _cmdAvailable = _cmdAvailableFences[_curFrame];
-    auto& _descriptorSet = _descriptorSets[_curFrame];
 
     // fences
     if (device.waitForFences(_cmdAvailable,
@@ -247,10 +323,7 @@ void Renderer::DrawTriangle() {
         .setClearValues(clearValue);
 
         _cmdBuf.beginRenderPass(renderPassBegin, {}); { // what is contents?
-            _cmdBuf.bindPipeline(vk::PipelineBindPoint::eGraphics, renderProcess->pipeline);
-            _cmdBuf.bindVertexBuffers(0, _deviceVertexBuffer->buffer, {0});
-            _cmdBuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, renderProcess->layout, 0, _descriptorSet, {});
-            _cmdBuf.draw(3, 1, 0, 0); // draw one triangle with 3 vertices
+            renderPassFunc(_cmdBuf);
         } _cmdBuf.endRenderPass();
     } _cmdBuf.end();
 

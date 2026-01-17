@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace toy2d {
 
@@ -31,6 +32,8 @@ private:
 
     std::unique_ptr<Buffer> _hostVertexBuffer;
     std::unique_ptr<Buffer> _deviceVertexBuffer;
+    std::unique_ptr<Buffer> _hostIndexBuffer;
+    std::unique_ptr<Buffer> _deviceIndexBuffer;
     std::vector<std::unique_ptr<Buffer>> _uniformBuffers; // use coherent memory for volatile updates
 
     vk::DescriptorPool _descriptorPool;
@@ -42,16 +45,28 @@ public:
     Renderer(int maxFlightCount = 2);
     ~Renderer();
 
+    void Render(std::function<void(vk::CommandBuffer& cmdBuf)> renderPassFunc);
+
+    void InitTriangle();
     void SetTriangle(const std::array<vec2, 3>& vertices);
-    void SetUniformObject(const UniformObject& ubo);
     void DrawTriangle();
+
+    void InitRectangle();
+    void SetRectangle(const std::array<vec2, 4>& vertices, const std::array<uint32_t, 6>& indices);
+    void DrawRectangle();
+
+    void SetUniformObject(const UniformObject& ubo);
 
 private:
     void allocCommandBuffer();
     void createSemaphores();
     void createFences();
+
     void createVertexBuffer(size_t size);
     void bufferVertexData(void* data);
+    void createIndexBuffer(size_t size);
+    void bufferIndexData(void* data);
+
     void createUniformBuffer(size_t size);
     void bufferUniformData(void* data);
     void createDescriptorPool();
