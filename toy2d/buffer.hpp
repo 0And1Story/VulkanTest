@@ -33,6 +33,8 @@ public:
     Buffer(size_t size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property);
     ~Buffer();
 
+    static std::optional<size_t> QueryMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags propertyFlags);
+
 private:
     void createBuffer();
     void queryMemoryInfo();

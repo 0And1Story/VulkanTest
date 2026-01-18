@@ -10,6 +10,7 @@
 #include "vulkan/vulkan.hpp"
 
 #include <vector>
+#include <functional>
 
 namespace toy2d {
 
@@ -25,6 +26,7 @@ public:
     vk::CommandBuffer AllocCommandBuffer();
     void FreeCommandBuffer(const vk::CommandBuffer& cmdBuf);
     void ResetCommandPool();
+    void ExecuteCommand(const vk::Queue queue, const std::function<void(const vk::CommandBuffer&)>& cmdFunc);
 
 private:
     void createCommandPool();

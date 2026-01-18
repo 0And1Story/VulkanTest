@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
     renderer.InitRectangle();
     renderer.SetRectangle(rect_vertices, rect_indices);
     renderer.SetUniformObject(ubo);
+//    renderer.SetTexture("resources/texture.png");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

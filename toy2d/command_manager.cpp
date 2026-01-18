@@ -47,4 +47,21 @@ void CommandManager::ResetCommandPool() {
     Context::GetInstance().device.resetCommandPool(_pool);
 }
 
+void CommandManager::ExecuteCommand(const vk::Queue queue, const std::function<void(const vk::CommandBuffer&)>& cmdFunc) {
+    auto cmdBuf = AllocCommandBuffer();
+
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+    cmdBuf.begin(beginInfo); {
+        cmdFunc(cmdBuf);
+    } cmdBuf.end();
+
+    vk::SubmitInfo submit;
+    submit.setCommandBuffers(cmdBuf);
+    queue.submit(submit);
+    queue.waitIdle();
+
+    FreeCommandBuffer(cmdBuf);
+}
+
 }

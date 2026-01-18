@@ -39,14 +39,7 @@ void Buffer::queryMemoryInfo() {
     auto requirements = ctx.device.getBufferMemoryRequirements(buffer);
     memoryInfo.size = requirements.size;
 
-    auto properties = ctx.phyDevice.getMemoryProperties();
-    for (size_t i = 0; i < properties.memoryTypeCount; ++i) {
-        if ((requirements.memoryTypeBits & (1 << i)) &&
-            (properties.memoryTypes[i].propertyFlags & memoryInfo.property)) {
-            memoryInfo.memoryTypeIndex = i;
-            break;
-        }
-    }
+    memoryInfo.memoryTypeIndex = QueryMemoryTypeIndex(requirements.memoryTypeBits,memoryInfo.property);
 
     if (!memoryInfo.memoryTypeIndex.has_value()) {
         throw std::runtime_error("Failed to find suitable memory type for buffer.");
@@ -63,6 +56,19 @@ void Buffer::allocMemory() {
 
 void Buffer::bindMemoryToBuffer() {
     Context::GetInstance().device.bindBufferMemory(buffer, memory, 0);
+}
+
+std::optional<size_t> Buffer::QueryMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags propertyFlags) {
+    auto& ctx = Context::GetInstance();
+    auto properties = ctx.phyDevice.getMemoryProperties();
+
+    for (size_t i = 0; i < properties.memoryTypeCount; ++i) {
+        if ((type & (1 << i)) &&
+            (properties.memoryTypes[i].propertyFlags & propertyFlags)) {
+            return i;
+        }
+    }
+    return {};
 }
 
 }

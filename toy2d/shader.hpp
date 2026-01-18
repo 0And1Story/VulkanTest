@@ -22,6 +22,7 @@ public:
 private:
     static std::unique_ptr<Shader> _instance;
     std::vector<vk::PipelineShaderStageCreateInfo> _stages;
+    vk::DescriptorSetLayout _descriptorSetLayout;
 
 public:
     static void Init(const std::string& vertexSource, const std::string& fragmentSource);
@@ -30,12 +31,14 @@ public:
     static Shader& GetInstance();
 
     std::vector<vk::PipelineShaderStageCreateInfo> getStages();
+    vk::DescriptorSetLayout getDescriptorSetLayout();
 
     ~Shader();
 
 private:
     Shader(const std::string& vertexSource, const std::string& fragmentSource);
     void initStages();
+    void initDescriptorSetLayout();
 };
 
 }

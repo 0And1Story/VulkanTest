@@ -39,10 +39,12 @@ Shader::Shader(const std::string& vertexSource, const std::string& fragmentSourc
     fragmentModule = Context::GetInstance().device.createShaderModule(createInfo);
 
     initStages();
+    initDescriptorSetLayout();
 }
 
 Shader::~Shader() noexcept {
     auto& device = Context::GetInstance().device;
+    device.destroyDescriptorSetLayout(_descriptorSetLayout);
     device.destroyShaderModule(vertexModule);
     device.destroyShaderModule(fragmentModule);
 }
@@ -61,6 +63,29 @@ void Shader::initStages() {
 
 std::vector<vk::PipelineShaderStageCreateInfo> Shader::getStages() {
     return _stages;
+}
+
+void Shader::initDescriptorSetLayout() {
+    vk::DescriptorSetLayoutCreateInfo createInfo;
+
+    std::vector<vk::DescriptorSetLayoutBinding> bindings(2);
+    bindings[0]
+    .setBinding(0)
+    .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+    .setDescriptorCount(1)
+    .setStageFlags(vk::ShaderStageFlagBits::eFragment);
+    bindings[1]
+    .setBinding(1)
+    .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+    .setDescriptorCount(1)
+    .setStageFlags(vk::ShaderStageFlagBits::eFragment);
+
+    createInfo.setBindings(bindings);
+    _descriptorSetLayout = Context::GetInstance().device.createDescriptorSetLayout(createInfo);
+}
+
+vk::DescriptorSetLayout Shader::getDescriptorSetLayout() {
+    return _descriptorSetLayout;
 }
 
 }

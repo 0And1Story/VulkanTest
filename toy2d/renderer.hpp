@@ -12,6 +12,7 @@
 #include "buffer.hpp"
 #include "vertex.hpp"
 #include "uniform.hpp"
+#include "texture.hpp"
 
 #include <vector>
 #include <memory>
@@ -39,13 +40,16 @@ private:
     vk::DescriptorPool _descriptorPool;
     std::vector<vk::DescriptorSet> _descriptorSets;
 
+    std::unique_ptr<Texture> _texture;
+    vk::Sampler _sampler;
+
     static constexpr auto clearColor = vk::ClearColorValue(std::array<float,4> {0.1f, 0.1f, 0.1f, 1.0f});
 
 public:
     Renderer(int maxFlightCount = 2);
     ~Renderer();
 
-    void Render(std::function<void(vk::CommandBuffer& cmdBuf)> renderPassFunc);
+    void Render(const std::function<void(vk::CommandBuffer& cmdBuf)>& renderPassFunc);
 
     void InitTriangle();
     void SetTriangle(const std::array<vec2, 3>& vertices);
@@ -56,6 +60,7 @@ public:
     void DrawRectangle();
 
     void SetUniformObject(const UniformObject& ubo);
+    void SetTexture(std::string_view imagePath);
 
 private:
     void allocCommandBuffer();
@@ -72,6 +77,8 @@ private:
     void createDescriptorPool();
     void allocDescriptorSets();
     void updateDescriptorSets();
+
+    void createSampler();
 };
 
 }

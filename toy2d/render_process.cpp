@@ -22,7 +22,6 @@ RenderProcess::RenderProcess(int width, int height) {
 
 RenderProcess::~RenderProcess() {
     auto& device = Context::GetInstance().device;
-    device.destroyDescriptorSetLayout(descriptorSetLayout);
     device.destroyPipeline(pipeline);
     device.destroyRenderPass(renderPass);
     device.destroyPipelineLayout(layout);
@@ -115,12 +114,7 @@ void RenderProcess::InitLayout() {
     auto& device = Context::GetInstance().device;
     vk::PipelineLayoutCreateInfo createInfo;
 
-    vk::DescriptorSetLayoutCreateInfo layoutCreateInfo;
-    vk::DescriptorSetLayoutBinding binding;
-
-    binding = UniformObject::getBinding();
-    layoutCreateInfo.setBindings(binding);
-    descriptorSetLayout = device.createDescriptorSetLayout(layoutCreateInfo);
+    auto descriptorSetLayout = Shader::GetInstance().getDescriptorSetLayout();
 
     createInfo.setSetLayouts(descriptorSetLayout);
     layout = device.createPipelineLayout(createInfo);

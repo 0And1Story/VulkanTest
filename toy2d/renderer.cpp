@@ -8,6 +8,7 @@
 #include "renderer.hpp"
 
 #include "context.hpp"
+#include "shader.hpp"
 
 namespace toy2d {
 
@@ -15,6 +16,8 @@ Renderer::Renderer(int maxFlightCount) : _maxFlightCount(maxFlightCount) {
     allocCommandBuffer();
     createSemaphores();
     createFences();
+    createSampler();
+    SetTexture("resources/texture.png");
     createUniformBuffer(sizeof(UniformObject));
     createDescriptorPool();
     allocDescriptorSets();
@@ -24,6 +27,7 @@ Renderer::Renderer(int maxFlightCount) : _maxFlightCount(maxFlightCount) {
 Renderer::~Renderer() {
     auto& device = Context::GetInstance().device;
     auto& cmdMgr = Context::GetInstance().commandManager;
+    device.destroySampler(_sampler);
     device.destroyDescriptorPool(_descriptorPool);
     _hostVertexBuffer.reset();
     _deviceVertexBuffer.reset();
@@ -177,15 +181,15 @@ void Renderer::bufferUniformData(void* data) {
 
 void Renderer::createDescriptorPool() {
     vk::DescriptorPoolCreateInfo createInfo;
-    std::vector<vk::DescriptorPoolSize> poolSizes(1);
+    std::vector<vk::DescriptorPoolSize> poolSizes(2);
 
     poolSizes[0]
     .setType(vk::DescriptorType::eUniformBuffer) // for uniform
     .setDescriptorCount(_maxFlightCount);
 
-    // poolSizes[1]
-    // .setType(vk::DescriptorType::eSampledImage) // for sampler image
-    // .setDescriptorCount(_maxFlightCount);
+     poolSizes[1]
+     .setType(vk::DescriptorType::eCombinedImageSampler) // for sampler image
+     .setDescriptorCount(_maxFlightCount);
 
     createInfo
     .setMaxSets(_maxFlightCount)
@@ -196,7 +200,8 @@ void Renderer::createDescriptorPool() {
 void Renderer::allocDescriptorSets() {
     auto& ctx = Context::GetInstance();
 
-    std::vector<vk::DescriptorSetLayout> layouts(_maxFlightCount, ctx.renderProcess->descriptorSetLayout);
+    auto descriptorSetLayout = Shader::GetInstance().getDescriptorSetLayout();
+    std::vector<vk::DescriptorSetLayout> layouts(_maxFlightCount, descriptorSetLayout);
 
     vk::DescriptorSetAllocateInfo allocInfo;
     allocInfo
@@ -210,21 +215,54 @@ void Renderer::updateDescriptorSets() {
     auto& ctx = Context::GetInstance();
     for (size_t i = 0; i < _descriptorSets.size(); ++i) {
         auto& descriptorSet = _descriptorSets[i];
-        vk::WriteDescriptorSet writer;
-        vk::DescriptorBufferInfo bufferInfo;
-        bufferInfo
+        std::vector<vk::WriteDescriptorSet> writers(2);
+        std::vector<vk::DescriptorBufferInfo> bufferInfos(1);
+        std::vector<vk::DescriptorImageInfo> imageInfos(1);
+
+        // uniform
+        bufferInfos[0]
         .setBuffer(_uniformBuffers[i]->buffer)
         .setOffset(0)
         .setRange(_uniformBuffers[i]->size);
-        writer
+        writers[0]
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setDescriptorCount(1)
         .setDstSet(descriptorSet)
         .setDstBinding(0)
         .setDstArrayElement(0)
-        .setBufferInfo(bufferInfo);
-        ctx.device.updateDescriptorSets(writer, {}); // what is descriptor copies?
+        .setBufferInfo(bufferInfos[0]);
+
+        // sampler
+        imageInfos[0]
+        .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+        .setImageView(_texture->view)
+        .setSampler(_sampler);
+        writers[1]
+        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+        .setDescriptorCount(1)
+        .setDstSet(descriptorSet)
+        .setDstBinding(1)
+        .setDstArrayElement(0)
+        .setImageInfo(imageInfos[0]);
+
+        ctx.device.updateDescriptorSets(writers, {}); // what is descriptor copies?
     }
+}
+
+void Renderer::createSampler() {
+    vk::SamplerCreateInfo createInfo;
+    createInfo
+    .setMagFilter(vk::Filter::eLinear)
+    .setMinFilter(vk::Filter::eLinear)
+    .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+    .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+    .setAddressModeW(vk::SamplerAddressMode::eRepeat)
+    .setAnisotropyEnable(false)
+    .setBorderColor(vk::BorderColor::eIntOpaqueBlack)
+    .setUnnormalizedCoordinates(false)
+    .setCompareEnable(false)
+    .setMipmapMode(vk::SamplerMipmapMode::eLinear);
+    _sampler = Context::GetInstance().device.createSampler(createInfo);
 }
 
 void Renderer::InitTriangle() {
@@ -272,7 +310,11 @@ void Renderer::SetUniformObject(const toy2d::UniformObject& ubo) {
     bufferUniformData((void*)&ubo);
 }
 
-void Renderer::Render(std::function<void(vk::CommandBuffer&)> renderPassFunc) {
+void Renderer::SetTexture(std::string_view imagePath) {
+    _texture.reset(new Texture(imagePath));
+}
+
+void Renderer::Render(const std::function<void(vk::CommandBuffer&)>& renderPassFunc) {
     auto& ctx = Context::GetInstance();
     auto& device = ctx.device;
     auto& swapchain = ctx.swapchain;
